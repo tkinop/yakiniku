@@ -5,6 +5,9 @@ TagManager:
   serializedVersion: 2
   tags:
   - RoastedField
+  - RoastedObject
+  - OutOfRoastedField
+  - FireArea
   layers:
   - Default
   - TransparentFX
@@ -16,9 +19,9 @@ TagManager:
   - 
   - Base
   - Meat
-  - 
-  - 
-  - 
+  - FireArea
+  - RoastedField
+  - OutOfRoastedField
   - 
   - 
   - 
@@ -45,6 +48,15 @@ TagManager:
   - name: base
     uniqueID: 3393421563
     locked: 0
+  - name: FireArea
+    uniqueID: 3537896565
+    locked: 0
   - name: niku
     uniqueID: 1899845469
+    locked: 0
+  - name: Smoke
+    uniqueID: 264880531
+    locked: 0
+  - name: Switch
+    uniqueID: 888990183
     locked: 0

@@ -3,13 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-// TODO もう少し抽象化したコントローラに修正（焼きコントローラ、みたいな）
-public class MeatController : MonoBehaviour, IPointerClickHandler
+public class RoastController : MonoBehaviour, IPointerClickHandler
 {
     // 焼きスピード
     // 移動火で増減するイメージ
-    public float MeetRoastSpeed = 1.0f;
-    public float MeetRoastedCount = 0.0f;
+    public float roastSpeed = 1.0f;
+    public float roastedCount = 0.0f;
     public Sprite[] RoastedImageSpriteArray;
     public Sprite[] EatingImageSpriteArray;
     public float ChangeSpriteCounte = 100.0f;
@@ -20,10 +19,14 @@ public class MeatController : MonoBehaviour, IPointerClickHandler
     private PlayerController PlayerController;
     private EatController EatController;
     private AudioSource audioSource;
+    private SmokeController SmokeController;
+    private VentilateController ventilateController;
+    private EatController eatController;
 
     // TODO privateの方がいいかも
     public bool IsRoasted = false;
     public bool IsNotOnPlate = false;
+    public bool OnFireArea = false;
 
     // スコア（焼き状態で得点を変更）
     // TODO 抽象化により分離予定
@@ -38,6 +41,10 @@ public class MeatController : MonoBehaviour, IPointerClickHandler
         PlayerController = GameObject.Find("Player").GetComponent<PlayerController>();
         EatController = GameObject.Find("Own").GetComponent<EatController>();
         audioSource = gameObject.GetComponent<AudioSource>();
+        SmokeController = GameObject.Find("Smokes").GetComponent<SmokeController>();
+
+        ventilateController = GameObject.Find("Ventilation").GetComponent<VentilateController>();
+        eatController = GameObject.Find("Own").GetComponent<EatController>();
     }
 
     // Update is called once per frame
@@ -50,12 +57,18 @@ public class MeatController : MonoBehaviour, IPointerClickHandler
 
             // 焼きスペースにある場合は焼き値を加えていく
             // TODO 加算タイミングが一定じゃない
-            MeetRoastedCount += MeetRoastSpeed;
-            Debug.Log(MeetRoastedCount);
+            float roastedNum = roastSpeed;
+            if (OnFireArea) {
+                // TODO 加算倍率
+                roastedNum = roastSpeed * 1.2f;
+            }
+            roastedCount += roastedNum;
+            SmokeController.AddRoastedCount(roastedNum);
+            Debug.Log(roastedCount);
 
             // あるタイミングで表示グラフィックを変えていく（焼きグラ）
             // TODO タイミングは要変更
-            if (MeetRoastedCount > ChangeSpriteCounte + (ArrayIndex * ChangeSpriteCounte) && RoastedImageSpriteArray.Length > ArrayIndex)
+            if (roastedCount > ChangeSpriteCounte + (ArrayIndex * ChangeSpriteCounte) && RoastedImageSpriteArray.Length > ArrayIndex)
             {
                 CurrentArrayIndex = ArrayIndex;
                 // 表示グラ変更
@@ -72,7 +85,7 @@ public class MeatController : MonoBehaviour, IPointerClickHandler
     // 鉄板上クリック時イベント
     public void OnPointerClick(PointerEventData eventData)
     {
-        if (PlayerController.IsActive() && IsNotOnPlate)
+        if (PlayerController.IsActive() && IsNotOnPlate && !eatController.IsEating())
         {
             // 食べ終わるまで他操作はできない（ゲーム内時間は進行）
             PlayerController.SetActive(false);
@@ -112,4 +125,21 @@ public class MeatController : MonoBehaviour, IPointerClickHandler
         SpriteRenderer.sprite = EatingImageSpriteArray[CurrentArrayIndex];
     }
 
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.tag == "FireArea" && !OnFireArea)
+        {
+            Debug.Log("移動火に接触");
+            OnFireArea = true;
+        }
+    }
+
+    void OnTriggerExit2D(Collider2D other)
+    {
+        if (other.tag == "FireArea" && OnFireArea)
+        {
+            Debug.Log("移動火外");
+            OnFireArea = false;
+        }
+    }
 }

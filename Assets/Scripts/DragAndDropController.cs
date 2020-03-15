@@ -10,16 +10,16 @@ public class DragAndDropController : MonoBehaviour, IDragHandler, IBeginDragHand
 {
     // ドラッグ前の位置
     private Vector2 prevPos;
-    private MeatController MeatController;
-    private PlateController PlateController;
+    private RoastController roastController;
+    private PlateController plateController;
 
     private GameManager gameManager;
 
     // Start is called before the first frame update
     void Start()
     {
-        MeatController = transform.GetComponent<MeatController>();
-        PlateController = GameObject.Find("Plate").GetComponent<PlateController>();
+        roastController = transform.GetComponent<RoastController>();
+        plateController = GameObject.Find("Plate").GetComponent<PlateController>();
         gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
     }
 
@@ -45,24 +45,36 @@ public class DragAndDropController : MonoBehaviour, IDragHandler, IBeginDragHand
         var raycastResults = new List<RaycastResult>();
         EventSystem.current.RaycastAll(eventData, raycastResults);
 
+        var onRoastedField = false;
+        var onRoastedObject = false;
+
         foreach (var hit in raycastResults)
         {
-            // ドロップ可能エリアなら配置
             if (hit.gameObject.CompareTag("RoastedField"))
             {
-                Vector3 TargetPos = Camera.main.ScreenToWorldPoint(eventData.position);
-                TargetPos.z = 0;
-                transform.position = TargetPos;
-                this.enabled = false;
-
-                MeatController.IsNotOnPlate = true;
-                MeatController.IsRoasted = true;
-
-                // お皿上に物があるかの状態更新
-                PlateController.OnObject();
-
-                return;
+                // ドロップ可能エリア判定
+                onRoastedField = true;
+            } else if (hit.gameObject == gameObject)
+            {
+                // ドロップ対象と他の焼き物オブジェクトと重なるか判定
+                // TODO gameObjectからraycast(仮)を取得して判定
             }
+        }
+
+        if (onRoastedField && !onRoastedObject)
+        {
+            Vector3 TargetPos = Camera.main.ScreenToWorldPoint(eventData.position);
+            TargetPos.z = 0;
+            transform.position = TargetPos;
+            this.enabled = false;
+
+            roastController.IsNotOnPlate = true;
+            roastController.IsRoasted = true;
+
+            // お皿上に物があるかの状態更新
+            plateController.OnObject();
+
+            return;
         }
 
         // ドロップできなかったら戻す

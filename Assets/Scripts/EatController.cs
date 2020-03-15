@@ -29,14 +29,14 @@ public class EatController : MonoBehaviour
             // 食事中処理
             foreach (Transform child in gameObject.transform)
             {
-                MeatController meatController = child.GetComponent<MeatController>();
-                StartCoroutine("Eating", meatController);
+                RoastController roastController = child.GetComponent<RoastController>();
+                StartCoroutine("Eating", roastController);
             }
         }        
     }
 
     // 食事中処理
-    private IEnumerator Eating(MeatController meatController)
+    private IEnumerator Eating(RoastController meatController)
     {
         yield return new WaitForSeconds(eatingTime/2);
 
@@ -52,4 +52,8 @@ public class EatController : MonoBehaviour
         isEating = false;
     }
 
+    public bool IsEating()
+    {
+        return isEating;
+    }
 }
